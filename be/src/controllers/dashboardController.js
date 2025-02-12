@@ -22,12 +22,12 @@ export const getClientDashboard = async (req, res, next) => {
         });
       }
 
-      // Aggregate sales to find clients who bought the specified plan
+      // Aggregate sales to find clients who bought the specified plan(the aggregation returns and array with objects'[{"id_": ObjectId("123"), "purchaseCount": 3}]')
       const salesWithPlan = await Sale.aggregate([
         { $unwind: "$shoppingCart" },
         { $match: { "shoppingCart.plan": foundPlan._id } },
         { $group: { _id: "$client", purchaseCount: { $sum: 1 } } }, // Count purchases per client
-        { $project: { _id: 1, purchaseCount: 1 } }, // Include purchaseCount for later filtering
+        { $project: { _id: 1, purchaseCount: 1 } }, // Include purchaseCount for range filtering
       ]);
 
       // 'salesWithPlan' is an array with objects that have two fields, the sale _id, and purchaseCount for the other filter
@@ -53,11 +53,11 @@ export const getClientDashboard = async (req, res, next) => {
       const min = Number(minPurchases) || 0;
       const max = Number(maxPurchases) || Infinity;
 
-      const salesCounts = await Sale.aggregate([
+      const idsAndSalesCounts = await Sale.aggregate([
         { $group: { _id: "$client", purchaseCount: { $sum: 1 } } },
         { $match: { purchaseCount: { $gte: min, $lte: max } } },
       ]);
-      clientIds = salesCounts.map((sale) => sale._id);
+      clientIds = idsAndSalesCounts.map((idSalecount) => idSalecount._id);
     }
 
     if (clientIds !== null && clientIds.length > 0) {
