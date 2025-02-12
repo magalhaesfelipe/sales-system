@@ -5,36 +5,16 @@ import Plan from "../models/planModel.js";
 // (GET) CLIENTS DASHBOARD WITH MORE FILTERS
 export const getClientDashboard = async (req, res, next) => {
   try {
-    const { type, minPurchases, maxPurchases, plan } = req.query;
+    const { type, minPurchases, maxPurchases, plan, uf } = req.query;
 
-    let filters = {}; // We build the filter first, then pass it to fetch the documents
-
-    // Simple filters
+    let filters = {};
     if (type) filters.type = type;
     if (uf) filters.uf = uf;
 
-    // Fetch client purchase counts if filtering by volume of purchases
-    if (minPurchases || maxPurchases) {
-      const salesCounts = await Sale.aggregate([
-        { $group: { _id: "$client", purchaseCount: { $sum: 1 } } },
-        {
-          $match: {
-            purchaseCount: {
-              $gte: Number(minPurchases) || 0,
-              $lte: Number(maxPurchases) || Infinity,
-            },
-          },
-        },
-      ]);
+    let clientIds = null;
 
-      var clientIdsPurchase = salesCounts.map((sale) => sale._id);
-    }
-
-    // Filter by Plan type
     if (plan) {
-      // Find the plan by its name
       const foundPlan = await Plan.findOne({ name: plan });
-
       if (!foundPlan) {
         return res.status(404).json({
           status: "failed",
@@ -42,28 +22,49 @@ export const getClientDashboard = async (req, res, next) => {
         });
       }
 
+      // Aggregate sales to find clients who bought the specified plan
       const salesWithPlan = await Sale.aggregate([
         { $unwind: "$shoppingCart" },
         { $match: { "shoppingCart.plan": foundPlan._id } },
-        { $group: { _id: "$client" } },
+        { $group: { _id: "$client", purchaseCount: { $sum: 1 } } }, // Count purchases per client
+        { $project: { _id: 1, purchaseCount: 1 } }, // Include purchaseCount for later filtering
       ]);
 
-      var clientIdsWithPlan = salesWithPlan.map((sale) => sale._id);
-    }
+      clientIds = salesWithPlan.map((sale) => sale._id);
 
-    // I'm using this to ensure all filters apply together
-    if (minPurchases || maxPurchases || plan) {
-      if (clientIdsPurchase && clientIdsWithPlan) {
-        filters._id = {
-          $in: clientIdsPurchase.filter((id) => clientIdsWithPlan.includes(id)),
-        };
-      } else {
-        filters._id = { $in: clientIdsPurchase || clientIdsWithPlan };
+      if (minPurchases || maxPurchases) {
+        const min = Number(minPurchases) || 0;
+        const max = Number(maxPurchases) || Infinity;
+
+        clientIds = salesWithPlan
+          .filter(
+            (sale) => sale.purchaseCount >= min && sale.purchaseCount <= max
+          )
+          .map((sale) => sale._id);
+
+        if (clientIds.length === 0) {
+          return res.json([]); // No clients match both plan and purchase criteria
+        }
       }
+    } else if (minPurchases || maxPurchases) {
+      // Handle purchase range filtering only when plan is NOT specified
+      const min = Number(minPurchases) || 0;
+      const max = Number(maxPurchases) || Infinity;
+
+      const salesCounts = await Sale.aggregate([
+        { $group: { _id: "$client", purchaseCount: { $sum: 1 } } },
+        { $match: { purchaseCount: { $gte: min, $lte: max } } },
+      ]);
+      clientIds = salesCounts.map((sale) => sale._id);
     }
 
-    const clients = await Client.find(filters); // All the filters applied together
+    if (clientIds !== null && clientIds.length > 0) {
+      filters._id = { $in: clientIds };
+    } else if (clientIds !== null && clientIds.length === 0) {
+      return res.json([]);
+    }
 
+    const clients = await Client.find(filters);
     res.json(clients);
   } catch (error) {
     next(error);
