@@ -38,8 +38,8 @@ export const getClientDashboard = async (req, res, next) => {
         const max = Number(maxPurchases) || Infinity;
 
         // First filter only the sales with purchased count inside the range 'min' and 'max'. Then extract the ids
-        clientIds = salesWithPlan 
-          .filter( 
+        clientIds = salesWithPlan
+          .filter(
             (sale) => sale.purchaseCount >= min && sale.purchaseCount <= max
           )
           .map((sale) => sale._id);
@@ -58,6 +58,11 @@ export const getClientDashboard = async (req, res, next) => {
         { $match: { purchaseCount: { $gte: min, $lte: max } } },
       ]);
       clientIds = idsAndSalesCounts.map((idSalecount) => idSalecount._id);
+    }
+
+    if (!type && !minPurchases && !maxPurchases && !plan && !uf) {
+      const clients = await Client.find();
+      return res.json(clients);
     }
 
     if (clientIds !== null && clientIds.length > 0) {
