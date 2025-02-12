@@ -30,14 +30,16 @@ export const getClientDashboard = async (req, res, next) => {
         { $project: { _id: 1, purchaseCount: 1 } }, // Include purchaseCount for later filtering
       ]);
 
+      // 'salesWithPlan' is an array with objects that have two fields, the sale _id, and purchaseCount for the other filter
       clientIds = salesWithPlan.map((sale) => sale._id);
 
       if (minPurchases || maxPurchases) {
         const min = Number(minPurchases) || 0;
         const max = Number(maxPurchases) || Infinity;
 
-        clientIds = salesWithPlan
-          .filter(
+        // First filter only the sales with purchased count inside the range 'min' and 'max'. Then extract the ids
+        clientIds = salesWithPlan 
+          .filter( 
             (sale) => sale.purchaseCount >= min && sale.purchaseCount <= max
           )
           .map((sale) => sale._id);
@@ -60,7 +62,7 @@ export const getClientDashboard = async (req, res, next) => {
 
     if (clientIds !== null && clientIds.length > 0) {
       filters._id = { $in: clientIds };
-    } else if (clientIds !== null && clientIds.length === 0) {
+    } else {
       return res.json([]);
     }
 
