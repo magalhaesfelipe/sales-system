@@ -1,25 +1,37 @@
 import mongoose from "mongoose";
 
-const saleSchema = new mongoose.Schema({
-  client: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: "Client",
-    required: true,
-  },
-  date: { type: Date, default: Date.now },
-  shoppingCart: [
-    {
-      plan: {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: "Plan",
-        required: true,
-      },
-      services: [{ type: mongoose.Schema.Types.ObjectId, ref: "Service" }],
+const saleSchema = new mongoose.Schema(
+  {
+    client: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Client",
+      required: true,
     },
-  ],
-  totalPrice: { type: Number },
-  discount: { type: Number, default: 0 },
-});
+    shoppingCart: {
+      type: [
+        {
+          plan: {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: "Plan",
+            required: true,
+          },
+          services: [{ type: mongoose.Schema.Types.ObjectId, ref: "Service" }],
+        },
+      ],
+      required: true,
+      validate: [
+        function (value) {
+          return Array.isArray(value) && value.length > 0;
+        },
+        "shoppingCart must be a non-empty array",
+      ],
+    },
+    totalPrice: { type: Number },
+    discount: { type: Number, default: 0 },
+    date: { type: Date, default: Date.now },
+  },
+  { strict: "throw" }
+);
 
 // PRE-VALIDATE MIDDLEWARE TO LIMIT ACTIVE SALES FOR EACH CLIENT IN THE LAST 3 MONTHS
 saleSchema.pre("validate", async function (next) {

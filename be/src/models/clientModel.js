@@ -3,43 +3,46 @@ import validator from "validator";
 import axios from "axios";
 import { cpf, cnpj } from "cpf-cnpj-validator";
 
-const clientSchema = new mongoose.Schema({
-  name: { type: String, required: true },
-  cpfCnpj: {
-    type: String,
-    required: true,
-    unique: true,
-    validate: {
-      validator: function (value) {
-        return isValidCpfCnpj(value);
+const clientSchema = new mongoose.Schema(
+  {
+    name: { type: String, required: true },
+    cpfCnpj: {
+      type: String,
+      required: true,
+      unique: true,
+      validate: {
+        validator: function (value) {
+          return isValidCpfCnpj(value);
+        },
+        message: "Invalid CPF/CNPJ",
       },
-      message: "Invalid CPF/CNPJ",
     },
-  },
-  phone: { type: String },
-  address: { type: String },
-  email: {
-    type: String,
-    required: true,
-    validate: [validator.isEmail, "Invalid email"],
-    unique: true
-  },
-  birthDate: {
-    type: Date,
-    validate: {
-      validator: (value) => value <= Date.now(), // Custom validator for birthDate
-      message: "Birth date must be in the past",
+    phone: { type: String },
+    address: { type: String },
+    email: {
+      type: String,
+      required: true,
+      validate: [validator.isEmail, "Invalid email"],
+      unique: true,
     },
+    birthDate: {
+      type: Date,
+      validate: {
+        validator: (value) => value <= Date.now(), // Custom validator for birthDate
+        message: "Birth date must be in the past",
+      },
+    },
+    type: {
+      type: String,
+      enum: ["pessoa-fisica", "pessoa-juridica"],
+      required: true,
+      lowercase: true,
+    },
+    uf: { type: String, lowercase: true },
+    cep: { type: String, required: true },
   },
-  type: {
-    type: String,
-    enum: ["pessoa-fisica", "pessoa-juridica"],
-    required: true,
-    lowercase: true,
-  },
-  uf: { type: String, lowercase: true },
-  cep: { type: String, required: true },
-});
+  { strict: "throw" }
+);
 
 // MIDDLEWARE TO FETCH THE ADDRESS WITH ViaCEP
 clientSchema.pre("save", async function (next) {

@@ -3,22 +3,7 @@ import Client from "../models/clientModel.js";
 // (POST) CREATE CLIENT
 export const createClient = async (req, res, next) => {
   try {
-    const { name, cpfCnpj, address, phone, email, birthDate, type, cep, uf } =
-      req.body;
-
-    const clientData = {
-      name: name,
-      cpfCnpj: cpfCnpj,
-      address: address,
-      phone: phone,
-      email: email,
-      birthDate: birthDate,
-      type: type,
-      cep: cep,
-      uf: uf,
-    };
-
-    const client = new Client(clientData);
+    const client = new Client(req.body);
     await client.save();
 
     res.status(201).json({

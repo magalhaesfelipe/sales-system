@@ -4,25 +4,9 @@ import mongoose from "mongoose";
 // (POST) CREATE SALE
 export const createSale = async (req, res, next) => {
   try {
-    // Preventing mass assigment(unauthorized modification of data)
-    const { client, date, shoppingCart, totalPrice, discount } = req.body;
+    const newSale = await Sale.create(req.body);
 
-    // Validations:
-    if (!Array.isArray(shoppingCart)) {
-      return res.status(400).json({ message: "shoppingCart must be an array" });
-    }
-
-    if (totalPrice <= 0) {
-      return res
-        .status(400)
-        .json({ message: "totalPrice must be greater than 0" });
-    }
-
-    // Creating a new sale
-    const saleData = { client, date, shoppingCart, totalPrice, discount };
-    const newSale = await Sale.create(saleData);
-
-    // Populate sale with client, plans, and services data
+    // Populate sale with client, plans, and services
     const populatedSale = await newSale.populate({
       path: "client shoppingCart.plan shoppingCart.services", // Paths to populate
     });

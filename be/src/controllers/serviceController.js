@@ -3,10 +3,7 @@ import Service from "../models/serviceModel.js";
 // (POST) CREATE SERVICE
 export const createService = async (req, res, next) => {
   try {
-    const { name, description, price } = req.body;
-    const serviceData = { name, description, price };
-
-    const newService = await Service.create(serviceData);
+    const newService = await Service.create(req.body);
 
     res.status(201).json({
       status: "success",
