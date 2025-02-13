@@ -1,4 +1,5 @@
 import express from "express";
+import { protect } from "./../controllers/authController.js";
 import {
   createPlan,
   getPlans,
@@ -9,7 +10,7 @@ import {
 
 const router = express.Router();
 
-router.route("/").post(createPlan).get(getPlans);
+router.route("/").post(createPlan).get(protect, getPlans);
 router.route("/:id").get(getPlanById).put(updatePlan).delete(deletePlan);
 
 export default router;
