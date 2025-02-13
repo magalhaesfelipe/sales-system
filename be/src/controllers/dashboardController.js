@@ -90,8 +90,9 @@ export const getSalesDashboard = async (req, res, next) => {
     if (clientId) clientFilters._id = clientId;
 
     // Filter by client type
-    if (clientType) clientFilters.type = clientType;
-
+    if (clientType) {
+      clientFilters.type = { $regex: new RegExp(clientType, "i") };
+    }
     // Filter by UF
     if (uf) clientFilters.uf = { $regex: new RegExp(uf, "i") };
 

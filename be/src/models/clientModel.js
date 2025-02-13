@@ -22,6 +22,7 @@ const clientSchema = new mongoose.Schema({
     type: String,
     required: true,
     validate: [validator.isEmail, "Invalid email"],
+    unique: true
   },
   birthDate: {
     type: Date,
@@ -34,9 +35,10 @@ const clientSchema = new mongoose.Schema({
     type: String,
     enum: ["pessoa-fisica", "pessoa-juridica"],
     required: true,
+    lowercase: true,
   },
+  uf: { type: String, lowercase: true },
   cep: { type: String, required: true },
-  uf: { type: String },
 });
 
 // MIDDLEWARE TO FETCH THE ADDRESS WITH ViaCEP
