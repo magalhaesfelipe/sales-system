@@ -2,30 +2,33 @@ import mongoose from "mongoose";
 import validator from "validator";
 import bcrypt from "bcryptjs";
 
-const userSchema = new mongoose.Schema({
-  name: { type: String, required: [true, "Please enter your name"] },
-  email: {
-    type: String,
-    required: [true, "Please provide your email"],
-    unique: true,
-    validate: [validator.isEmail, "Please provide a valid email"],
-  },
-  password: {
-    type: String,
-    required: [true, "Please provide a password"],
-    minLength: 8,
-  },
-  passwordConfirm: {
-    type: String,
-    required: [true, "Please confirm your password"],
-    validate: {
-      validator: function (el) {
-        return el === this.password;
+const userSchema = new mongoose.Schema(
+  {
+    name: { type: String, required: [true, "Please enter your name"] },
+    email: {
+      type: String,
+      required: [true, "Please provide your email"],
+      unique: true,
+      validate: [validator.isEmail, "Please provide a valid email"],
+    },
+    password: {
+      type: String,
+      required: [true, "Please provide a password"],
+      minLength: 8,
+    },
+    passwordConfirm: {
+      type: String,
+      required: [true, "Please confirm your password"],
+      validate: {
+        validator: function (el) {
+          return el === this.password;
+        },
+        message: "Passwords are not the same",
       },
-      message: "Passwords are not the same",
     },
   },
-});
+  { strict: "throw" }
+);
 
 // PRE-SAVE MIDDLEWARE ON THE DOCUMENT
 userSchema.pre("save", async function (next) {
