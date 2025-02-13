@@ -3,7 +3,8 @@ export const errorHandler = (err, req, res, next) => {
 
   // Send a response
   res.status(err.statusCode || 500).json({
-    status: "error",
+    status: err.status,
     message: err.message || "Something went wrong!",
+    stackTrace: err.stack,
   });
 };

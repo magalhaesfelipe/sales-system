@@ -15,6 +15,7 @@ const userSchema = new mongoose.Schema(
       type: String,
       required: [true, "Please provide a password"],
       minLength: 8,
+      select: false,
     },
     passwordConfirm: {
       type: String,
@@ -30,7 +31,7 @@ const userSchema = new mongoose.Schema(
   { strict: "throw" }
 );
 
-// PRE-SAVE MIDDLEWARE ON THE DOCUMENT
+// Pre-save middleware to hash the password and remove 'passwordConfirm'
 userSchema.pre("save", async function (next) {
   // Only run if password field is modified
   if (!this.isModified("password")) return next();
@@ -42,5 +43,12 @@ userSchema.pre("save", async function (next) {
   this.passwordConfirm = undefined;
   next();
 });
+
+userSchema.methods.correctPassword = async function (
+  candidatePassword,
+  userPassword
+) {
+  return await bcrypt.compare(candidatePassword, userPassword);
+};
 
 export default mongoose.model("User", userSchema);
