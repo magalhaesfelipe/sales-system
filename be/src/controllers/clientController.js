@@ -15,7 +15,7 @@ export const createClient = async (req, res, next) => {
       birthDate: birthDate,
       type: type,
       cep: cep,
-      uf,
+      uf: uf,
     };
 
     const client = new Client(clientData);

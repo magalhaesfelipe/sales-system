@@ -9,7 +9,7 @@ export const getClientDashboard = async (req, res, next) => {
 
     let filters = {};
     if (type) filters.type = type;
-    if (uf) filters.uf = uf;
+    if (uf) filters.uf = { $regex: new RegExp(uf, "i") }; // Case-insensitive regex
 
     let clientIds = null;
 
@@ -60,18 +60,16 @@ export const getClientDashboard = async (req, res, next) => {
       clientIds = idsAndSalesCounts.map((idSalecount) => idSalecount._id);
     }
 
-    if (!type && !minPurchases && !maxPurchases && !plan && !uf) {
-      const clients = await Client.find();
-      return res.json(clients);
-    }
+    let clientsQuery = Client.find(filters); // Start with type/uf filters
 
-    if (clientIds !== null && clientIds.length > 0) {
-      filters._id = { $in: clientIds };
-    } else {
+    if (clientIds && clientIds.length > 0) {
+      clientsQuery.where("_id").in(clientIds);
+    } else if (clientIds !== null && clientIds.length === 0) {
       return res.json([]);
     }
 
-    const clients = await Client.find(filters);
+    const clients = await await clientsQuery; // Execute the query
+
     res.json(clients);
   } catch (error) {
     next(error);
