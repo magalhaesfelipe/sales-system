@@ -1,6 +1,7 @@
 import Client from "../models/clientModel.js";
 import Sale from "../models/saleModel.js";
 import Plan from "../models/planModel.js";
+import Service from "../models/serviceModel.js";
 
 // (GET) CLIENTS DASHBOARD WITH MORE FILTERS
 export const getClientDashboard = async (req, res, next) => {
@@ -63,7 +64,6 @@ export const getClientDashboard = async (req, res, next) => {
     // Applying TYPE and UF filters BEFORE checking clientIds to ensure they are aways applied
     let clientsQuery = Client.find(filters); // The result is a query object, not the actual data yet
 
-    // 
     if (clientIds && clientIds.length > 0) {
       clientsQuery.where("_id").in(clientIds); // Filters by id the clientsQuery ids that already passed by other filters(if any(type/uf))
     } else if (clientIds !== null && clientIds.length === 0) {
@@ -81,5 +81,70 @@ export const getClientDashboard = async (req, res, next) => {
 // (GET) SALES DASHBOARD
 export const getSalesDashboard = async (req, res, next) => {
   try {
-  } catch (error) {}
+    const { clientId, plan, startDate, endDate, uf, services, clientType } =
+      req.query;
+
+    let clientFilters = {}; // Filters for client-related criteria
+
+    // Filter by client ID
+    if (clientId) clientFilters._id = clientId;
+
+    // Filter by client type
+    if (clientType) clientFilters.type = clientType;
+
+    // Filter by UF
+    if (uf) clientFilters.uf = { $regex: new RegExp(uf, "i") };
+
+    // Find matching clients FIRST
+    let matchingClients = await Client.find(clientFilters).select("_id");
+    let clientIds = matchingClients.map((client) => client._id);
+
+    if (clientIds.length === 0 && (clientType || uf || clientId)) {
+      // If any client filter is present and no client is found should return empty array
+      return res.json([]);
+    }
+
+    let filters = {};
+
+    if (clientType || uf || clientId) {
+      filters.client = { $in: clientIds };
+    }
+
+    // Filter by date range
+    if (startDate || endDate) {
+      filters.date = {};
+      if (startDate) filters.date.$gte = new Date(startDate);
+      if (endDate) filters.date.$lte = new Date(endDate);
+    }
+
+    // Filter by plan
+    if (plan) {
+      const foundPlan = await Plan.findOne({ name: plan });
+      if (!foundPlan) {
+        return res.status(404).json({
+          status: "failed",
+          message: "Plan not found",
+        });
+      }
+      filters["shoppingCart.plan"] = foundPlan._id;
+    }
+
+    // Filter by services
+    if (services) {
+      const serviceNames = services.split(",");
+      const foundServices = await Service.find({
+        name: { $in: serviceNames.map((name) => new RegExp(`^${name}$`, "i")) },
+      }).select("_id");
+      const serviceIds = foundServices.map((s) => s._id);
+      filters["shoppingCart.services"] = { $in: serviceIds };
+    }
+
+    const sales = await Sale.find(filters).populate(
+      "client shoppingCart.plan shoppingCart.services"
+    );
+
+    res.json(sales);
+  } catch (error) {
+    next(error);
+  }
 };
