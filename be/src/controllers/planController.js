@@ -3,10 +3,7 @@ import Plan from "../models/planModel.js";
 // (POST) CREATE PLAN
 export const createPlan = async (req, res, next) => {
   try {
-    const { name, description, basePrice } = req.body;
-    const planData = { name, description, basePrice };
-
-    const newPlan = await Plan.create(planData);
+    const newPlan = await Plan.create(req.body);
 
     res.status(201).json({
       status: "success",
