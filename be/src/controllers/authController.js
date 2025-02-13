@@ -1,6 +1,7 @@
 import User from "../models/userModel.js";
 import jwt from "jsonwebtoken";
 import AppError from "./../utils/appError.js";
+import { promisify } from "util";
 
 // Function to Sign function
 const signToken = (id) => {
@@ -79,6 +80,8 @@ export const protect = async (req, res, next) => {
     }
 
     // 2) Verification token
+    const decoded = await promisify(jwt.verify)(token, process.env.JWT_SECRET);
+    console.log(decoded);
 
     // 3) Check if user still exists
 
