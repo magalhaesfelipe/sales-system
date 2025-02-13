@@ -60,15 +60,17 @@ export const getClientDashboard = async (req, res, next) => {
       clientIds = idsAndSalesCounts.map((idSalecount) => idSalecount._id);
     }
 
-    let clientsQuery = Client.find(filters); // Start with type/uf filters
+    // Applying TYPE and UF filters BEFORE checking clientIds to ensure they are aways applied
+    let clientsQuery = Client.find(filters); // The result is a query object, not the actual data yet
 
+    // 
     if (clientIds && clientIds.length > 0) {
-      clientsQuery.where("_id").in(clientIds);
+      clientsQuery.where("_id").in(clientIds); // Filters by id the clientsQuery ids that already passed by other filters(if any(type/uf))
     } else if (clientIds !== null && clientIds.length === 0) {
       return res.json([]);
     }
 
-    const clients = await await clientsQuery; // Execute the query
+    const clients = await clientsQuery; // Execute the query
 
     res.json(clients);
   } catch (error) {
