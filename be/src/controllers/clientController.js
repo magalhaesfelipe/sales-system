@@ -23,7 +23,14 @@ export const createClient = async (req, res, next) => {
 // (GET) CLIENTS
 export const getClients = async (req, res, next) => {
   try {
-    const clients = await Client.find();
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 10;
+
+    const startIndex = (page - 1) * limit;
+    const endIndex = page * limit;
+
+    const clients = await Client.find().skip(startIndex).limit(limit);
+    const totalClients = await Client.countDocuments();
 
     if (!clients) {
       return res.status(404).json({
@@ -32,11 +39,32 @@ export const getClients = async (req, res, next) => {
       });
     }
 
+    const results = {};
+
+    if (endIndex < totalClients) {
+      results.next = {
+        page: page + 1,
+        limit: limit,
+      };
+    }
+
+    if (startIndex > 0) {
+      results.previous = {
+        page: page - 1,
+        limit: limit,
+      };
+    }
+
+    results.data = clients;
+    results.totalClients = totalClients;
+    results.totalPages = Math.ceil(totalClients / limit);
+    results.currentPage = page;
+
     res.status(200).json({
       status: "success",
       message: "Clients found!",
       count: clients.length,
-      data: clients,
+      results: results,
     });
   } catch (error) {
     next(error);
