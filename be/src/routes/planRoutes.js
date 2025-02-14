@@ -10,7 +10,7 @@ import {
 
 const router = express.Router();
 
-router.route("/").post(createPlan).get(protect, getPlans);
-router.route("/:id").get(getPlanById).put(updatePlan).delete(deletePlan);
+router.route("/").post(protect, createPlan).get(protect, getPlans);
+router.route("/:id").get(protect, getPlanById).put(protect, updatePlan).delete(protect, deletePlan);
 
 export default router;

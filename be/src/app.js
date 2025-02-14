@@ -1,5 +1,5 @@
 import express from "express";
-import { errorHandler } from "./middlewares/errorHandler.js";
+import { errorController } from "./middlewares/errorController.js";
 // import the routers
 import clientRouter from "./routes/clientRoutes.js";
 import planRouter from "./routes/planRoutes.js";
@@ -21,6 +21,6 @@ app.use("/api/vendas", saleRouter);
 app.use("/api/dashboard", dashboardRouter);
 
 // Error handling middleware
-app.use(errorHandler);
+app.use(errorController);
 
 export default app;

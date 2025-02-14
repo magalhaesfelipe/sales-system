@@ -27,9 +27,13 @@ const userSchema = new mongoose.Schema(
         message: "Passwords are not the same",
       },
     },
+    passwordChangedAt: Date,
   },
   { strict: "throw" }
 );
+
+
+// INSTANCE METHODS FOR AUTHENTICATION
 
 // Pre-save middleware to hash the password and remove 'passwordConfirm'
 userSchema.pre("save", async function (next) {
@@ -49,6 +53,19 @@ userSchema.methods.correctPassword = async function (
   userPassword
 ) {
   return await bcrypt.compare(candidatePassword, userPassword);
+};
+
+userSchema.methods.changedPasswordAfter = function (JWTTimestamp) {
+  if (this.passwordChangedAt) {
+    const changedTimestamp = parseInt(
+      this.passwordChangedAt.getTime() / 1000,
+      10
+    );
+
+    return JWTTimestamp < changedTimestamp; // If jwt was issued before the password change(jwt< passchange) returns true
+  }
+
+  return false; // If jwt was issued after the password change(JWT > passchange) returns false
 };
 
 export default mongoose.model("User", userSchema);

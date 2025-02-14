@@ -19,6 +19,7 @@ export const signup = async (req, res, next) => {
       email: req.body.email,
       password: req.body.password,
       passwordConfirm: req.body.passwordConfirm,
+      passwordChangedAt: req.body.passwordChangedAt,
     });
 
     const token = signToken(newUser._id);
@@ -63,7 +64,7 @@ export const login = async (req, res, next) => {
 
 export const protect = async (req, res, next) => {
   try {
-    // 1) Getting token and check if it's there
+    // 1) Checking if there is token and getting it
     let token;
 
     if (
@@ -79,14 +80,31 @@ export const protect = async (req, res, next) => {
       );
     }
 
-    // 2) Verification token
+    // 2) Verification if token payload(user id) was modified or if token if expired
     const decoded = await promisify(jwt.verify)(token, process.env.JWT_SECRET);
-    console.log(decoded);
 
-    // 3) Check if user still exists
+    // 3) Check if user still exists with the decoded id
+    const currentUser = await User.findById(decoded.id);
+    if (!currentUser) {
+      return next(
+        new AppError("The user belonging to this token no longer exists ", 401)
+      );
+    }
 
     // 4) Check if user changed password after the token was issued
+    // iat === 'issued at'
+    if (currentUser.changedPasswordAfter(decoded.iat)) {
+      return next(
+        new AppError(
+          "User recently changed password. Please log in again.",
+          401
+        )
+      );
+    }
 
+    // GRANT ACCESS TO PROTECTED ROUTE
+
+    req.user = currentUser; // Passing the user to the request, making available to other middleware
     next();
   } catch (error) {
     next(error);
