@@ -26,8 +26,8 @@ const saleSchema = new mongoose.Schema(
         "shoppingCart must be a non-empty array",
       ],
     },
-    totalPrice: { type: Number },
     discount: { type: Number, default: 0 },
+    totalPrice: { type: Number },
     date: { type: Date, default: Date.now },
   },
   { strict: "throw" }
@@ -147,41 +147,3 @@ function getPriceAdjustmentByUF(uf) {
 }
 
 export default mongoose.model("Sale", saleSchema);
-
-//     // Pricing adjustments based on UF
-
-//     // Adjust the prices of the plans and services based on the client's UF
-//     const multiplier = pricingRules[uf] || pricingRules.default;
-
-//     // Iterate through the shoppingCart and adjust prices
-//     this.shopppingCart.forEach((cartItem) => {
-//       const plan = cartItem.plan;
-//       const services = cartItem.services;
-
-//       // Apply percentage change to the plan's price
-//       if (plan && plan.price) {
-//         plan.price = plan.price * multiplier;
-//       }
-
-//       services.forEach((service) => {
-//         if (service && service.price) {
-//           service.price = service.price * multiplier;
-//         }
-//       });
-//     });
-
-//     // Recalculate totalPrice based on adjusted prices
-//     let newTotalPrice = 0;
-//     this.shoppingCart.forEach((cartItem) => {
-//       const plan = cartItem.plan;
-//       newTotalPrice += plan.price;
-//       cartItem.services.forEach((service) => {
-//         newTotalPrice += service.price;
-//       });
-//     });
-
-//     this.totalPrice = newTotalPrice - this.discount; // Apply discount
-
-//     next(); // Continue with the save operation
-//   } catch (error) {}
-// });

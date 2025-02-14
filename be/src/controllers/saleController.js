@@ -88,10 +88,14 @@ export const getSaleById = async (req, res, next) => {
       });
     }
 
+    const populatedSale = await sale.populate({
+      path: "client shoppingCart.plan shoppingCart.services",
+    });
+
     res.status(200).json({
       status: "success",
       message: "Sale found!",
-      data: sale,
+      data: populatedSale,
     });
   } catch (error) {
     next(error);

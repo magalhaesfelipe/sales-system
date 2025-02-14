@@ -6,14 +6,15 @@ import {
   updateService,
   deleteService,
 } from "../controllers/serviceController.js";
+import { protect } from "../controllers/authController.js";
 
 const router = express.Router();
 
-router.route("/").post(createService).get(getServices);
+router.route("/").post(protect, createService).get(protect, getServices);
 router
   .route("/:id")
-  .get(getServiceById)
-  .put(updateService)
-  .delete(deleteService);
+  .get(protect, getServiceById)
+  .put(protect, updateService)
+  .delete(protect, deleteService);
 
 export default router;

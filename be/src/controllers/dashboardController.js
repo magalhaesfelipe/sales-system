@@ -7,6 +7,10 @@ import Service from "../models/serviceModel.js";
 export const getClientDashboard = async (req, res, next) => {
   try {
     const { type, minPurchases, maxPurchases, plan, uf } = req.query;
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limi) || 10;
+    const startIndex = (page - 1) * limit;
+    const endIndex = page * limit;
 
     let filters = {};
     if (type) filters.type = type;
@@ -28,11 +32,11 @@ export const getClientDashboard = async (req, res, next) => {
         { $unwind: "$shoppingCart" },
         { $match: { "shoppingCart.plan": foundPlan._id } },
         { $group: { _id: "$client", purchaseCount: { $sum: 1 } } }, // Count purchases per client
-        { $project: { _id: 1, purchaseCount: 1 } }, // Include purchaseCount for range filtering
+        { $project: { _id: 1, purchaseCount: 1 } }, // Include purchaseCount for minPurchase and maxPurchase filter
       ]);
 
       // 'salesWithPlan' is an array with objects that have two fields, the sale _id, and purchaseCount for the other filter
-      clientIds = salesWithPlan.map((sale) => sale._id);
+      clientIds = salesWithPlan.map((s) => s._id);
 
       if (minPurchases || maxPurchases) {
         const min = Number(minPurchases) || 0;
@@ -70,9 +74,36 @@ export const getClientDashboard = async (req, res, next) => {
       return res.json([]);
     }
 
-    const clients = await clientsQuery; // Execute the query
+    const totalClients = await Client.countDocuments(clientsQuery.getFilter()); // Count with applied filters
+    const clients = await clientsQuery.skip(startIndex).limit(limit); // Execute the query with pagination
 
-    res.json(clients);
+    const results = {};
+
+    if (endIndex < totalClients) {
+      results.next = {
+        page: page + 1,
+        limit: limit,
+      };
+    }
+
+    if (startIndex > 0) {
+      results.previous = {
+        page: page - 1,
+        limit: limit,
+      };
+    }
+
+    results.data = clients;
+    results.totalClients = totalClients;
+    results.totalPages = Math.ceil(totalClients / limit);
+    results.currentPage = page;
+
+    res.json({
+      status: "success",
+      message: "Clients found!",
+      count: clients.length,
+      results: results,
+    });
   } catch (error) {
     next(error);
   }
@@ -83,6 +114,10 @@ export const getSalesDashboard = async (req, res, next) => {
   try {
     const { clientId, plan, startDate, endDate, uf, services, clientType } =
       req.query;
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 10;
+    const startIndex = (page - 1) * limit;
+    const endIndex = page * limit;
 
     let clientFilters = {}; // Filters for client-related criteria
 
@@ -140,11 +175,40 @@ export const getSalesDashboard = async (req, res, next) => {
       filters["shoppingCart.services"] = { $in: serviceIds };
     }
 
-    const sales = await Sale.find(filters).populate(
+    const salesQuery = Sale.find(filters).populate(
       "client shoppingCart.plan shoppingCart.services"
     );
 
-    res.json(sales);
+    const totalSales = await Sale.countDocuments(salesQuery.getFilter()); // Count with filters
+    const sales = await salesQuery.skip(startIndex).limit(limit);
+
+    const results = {};
+
+    if (endIndex < totalSales) {
+      results.next = {
+        page: page + 1,
+        limit: limit,
+      };
+    }
+
+    if (startIndex > 0) {
+      results.previous = {
+        page: page - 1,
+        limit: limit,
+      };
+    }
+
+    results.data = sales;
+    results.totalSales = totalSales;
+    results.totalPages = Math.ceil(totalSales / limit);
+    results.currentPage = page;
+
+    res.json({
+      status: "success",
+      message: "Sales found!",
+      count: sales.length,
+      results: results,
+    });
   } catch (error) {
     next(error);
   }
