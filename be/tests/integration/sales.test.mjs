@@ -3,21 +3,19 @@ import request from "supertest";
 import app from "../../src/app.js"; // Points to the Express app
 import { signToken } from "../../src/controllers/authController.js";
 import User from "../../src/models/userModel.js";
-import { jest } from "@jest/globals";
+import { afterAll, jest } from "@jest/globals";
 import dotenv from "dotenv";
+import Sale from "../../src/models/saleModel.js";
 
+// DATABASE CONNECTION
 dotenv.config();
 const DATABASE = process.env.DATABASE;
-jest.setTimeout(20000);
+jest.setTimeout(10000);
 
 beforeAll(async () => {
   await mongoose.connect(DATABASE).then(() => {
     console.log("Database connected!");
   });
-});
-
-afterAll(async () => {
-  await mongoose.disconnect();
 });
 
 describe("Sales API", () => {
@@ -27,9 +25,8 @@ describe("Sales API", () => {
   let testClientId;
 
   beforeAll(async () => {
-    // 1. User creation/retrieval and token generation
+    // 1. CREATE/RETRIEVE TEST USER | GENERATE TOKEN
     testUser = await User.findOne({ email: "test@example.com" });
-    console.log("THIS IS THE TEST USER: ", testUser);
 
     if (!testUser) {
       console.log("No user test user found");
@@ -41,8 +38,9 @@ describe("Sales API", () => {
       });
     }
     token = signToken(testUser._id);
+    console.log("THIS IS THE TEST USER: ", testUser);
 
-    // 2. Create a client for testing (before creating the sale)
+    // 2. CREATE TEST CLIENT for testing
     const newClientData = {
       name: "Banco Safra",
       cpfCnpj: "58.160.789/0001-28",
@@ -62,7 +60,7 @@ describe("Sales API", () => {
     expect(clientResponse.body).toHaveProperty("_id");
     testClientId = clientResponse.body.data._id;
 
-    // 3. Create a sale for testing
+    // 3. CREATE TEST SALE
     const newSaleData = {
       client: testClientId,
       date: "2025-01-20T12:34:56.789Z",
@@ -75,7 +73,7 @@ describe("Sales API", () => {
       discount: 5.0,
     };
 
-    const saleReponse = await request(app)
+    const saleResponse = await request(app)
       .post("/api/vendas")
       .set("Authorization", `Bearer ${token}`)
       .send(newSaleData);
@@ -84,9 +82,10 @@ describe("Sales API", () => {
     expect(saleResponse.status).toBe(201);
     expect(saleResponse.body).toHaveProperty("_id");
     testSaleId = saleResponse.body.data._id; // Store the ID for later use
-    console.log("TEST SALE ID", testSaleId);
+    console.log("TEST SALE ID:", testSaleId);
   });
 
+  // GET /vendas
   test("GET /vendas should return a list of sales", async () => {
     const response = await request(app)
       .get("/api/vendas")
@@ -109,7 +108,29 @@ describe("Sales API", () => {
     expect(response.status).toBe(401);
   });
 
+  // GET /vendas/:id
   test("GET /vendas/:id should return a sale by ID", async () => {
-    const response = await request(app).get("/api/vendas/");
+    const response = await request(app)
+      .get(`/api/vendas/${testSaleId}`)
+      .set("Authoroization", `Bearer ${token}`);
+
+    expect(response.status).toBe(200);
+    expect();
+  });
+
+  // POST /vendas
+
+  // PUT /vendas
+
+  // DELETE /vendas
+
+  // CLEAN UP
+  afterAll(async () => {
+    console.log("Cleaning up after all tests...");
+
+    await User.findByIdAndDelete(testUser._id);
+    await Client.findByIdAndDelete(testClientId);
+    await Sale.findByIdAndDelete(testSaleId);
+    await mongoose.disconnect();
   });
 });
