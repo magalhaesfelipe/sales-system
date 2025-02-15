@@ -1,0 +1,17 @@
+// import { getSales } from "../../src/controllers/saleController.js";
+
+// // Mock the request and response objects
+// const req = {};
+// const res = {
+//   json: jest.fn(), // Mock the .json() method
+//   status: jest.fn().mockReturnThis(), // Mock status() to return res
+// };
+
+// describe("Sale Controller", () => {
+//   test("getSales should return a list of sales", async () => {
+//     await getSales(req, res);
+
+//     // Expect res.json() to have been called at least once
+//     expect(res.json).toHaveBeenCalled();
+//   });
+// });

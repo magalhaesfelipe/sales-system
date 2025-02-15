@@ -4,7 +4,7 @@ import AppError from "./../utils/appError.js";
 import { promisify } from "util";
 
 // Function to Sign function
-const signToken = (id) => {
+export const signToken = (id) => {
   // jwt.sign({payload data}, secret-string, {options})
   return jwt.sign({ id }, process.env.JWT_SECRET, {
     expiresIn: process.env.JWT_EXPIRES_IN,
