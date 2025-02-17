@@ -1,20 +1,20 @@
 import mongoose from "mongoose";
 import dotenv from "dotenv";
-import request from "supertest";
 import app from "../../src/app.js";
+import request from "supertest";
 import User from "../../src/models/userModel.js";
 import Plan from "../../src/models/planModel.js";
 import { signToken } from "../../src/controllers/authController.js";
 import { afterAll, beforeAll, expect, jest } from "@jest/globals";
+import { createTestUserAndToken } from "../../src/utils/testUtils.js";
 
 jest.setTimeout(10000);
 dotenv.config();
 const DATABASE = process.env.DATABASE;
 
 describe("Plans API", () => {
-  let token;
+  let testUserId, token;
   let planId;
-  let testUserId;
 
   beforeAll(async () => {
     try {
@@ -23,25 +23,9 @@ describe("Plans API", () => {
       console.log("Database connected.");
 
       // 2. CREATE TEST USER | GENERATE TOKEN
-      let testUser = await User.findOne({ email: "test@example.com" });
-      if (!testUser) {
-        testUser = await User.create({
-          name: "Test User",
-          email: "test@example.com",
-          password: "123456789",
-          passwordConfirm: "123456789",
-        });
-      }
-      console.log("This is the test user created: ", testUser);
-      testUserId = testUser._id;
-      token = signToken(testUserId);
-      console.log("Generated Token:", token);
+      ({ testUserId, token } = await createTestUserAndToken());
 
-      if (!token) {
-        throw new Error("Token generation failed!");
-      }
-
-      console.log("Generated Token:", token);
+      console.log("Test user id and token:",testUserId, token);
     } catch (error) {
       console.error("Error in beforeAll:", error);
       throw error;
@@ -63,7 +47,7 @@ describe("Plans API", () => {
       .set("Authorization", `Bearer ${token}`)
       .send(planData);
 
-    console.log("POST Plan response:", planResponse);
+    console.log("POST Plan response body:", planResponse.body);
 
     expect(planResponse.status).toBe(201);
     expect(planResponse.body.data).toHaveProperty("_id");
@@ -117,8 +101,9 @@ describe("Plans API", () => {
     expect(planResponse.status).toBe(204);
   });
 
+  // CLEAN UP
   afterAll(async () => {
-    console.log("Cleaning up after all tests...");
+    console.log("Cleaning up after all Plan tests...");
 
     if (testUserId) await User.findByIdAndDelete(testUserId);
     if (planId) await Plan.findByIdAndDelete(planId);
