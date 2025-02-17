@@ -23,7 +23,6 @@ describe("Services API", () => {
 
       // 2. CREATE TEST USER | GENERATE TOKEN
       ({ testUserId, token } = await createTestUserAndToken());
-      console.log("Test user id and token:", testUserId, token);
     } catch (error) {
       console.error("Error in beforeAll:", error);
       throw error;
@@ -48,25 +47,62 @@ describe("Services API", () => {
     console.log("POST /servicos response body:", serviceResponse.body);
 
     serviceId = serviceResponse.body.data._id;
-    console.log("Service id:", serviceId);
 
     expect(serviceResponse.status).toBe(201);
     expect(serviceResponse.body.data).toHaveProperty("_id");
   });
 
   // GET /servicos
+  test("GET /servicos should return all Services documents", async () => {
+    const serviceResponse = await request(app)
+      .get("/api/servicos")
+      .set("Authorization", `Bearer ${token}`);
+
+    console.log("🟥", serviceResponse);
+    expect(serviceResponse.status).toBe(200);
+    expect(serviceResponse.body).toHaveProperty("data");
+  });
 
   // GET /servicos/:id
+  test("GET /servicos/:id should return the a Service document", async () => {
+    const serviceResponse = await request(app)
+      .get(`/api/servicos/${serviceId}`)
+      .set("Authorization", `Bearer ${token}`);
+
+    expect(serviceResponse.status).toBe(200);
+    expect(serviceResponse.body.data).toHaveProperty("_id");
+  });
 
   // PUT /servicos/:id
+  test("PUT /servicos/:id should return the modified document", async () => {
+    const updateData = {
+      price: 70,
+    };
+
+    const serviceResponse = await request(app)
+      .put(`/api/servicos/${serviceId}`)
+      .set("Authorization", `Bearer ${token}`)
+      .send(updateData);
+
+    expect(serviceResponse.status).toBe(200);
+    expect(serviceResponse.body.data.price).toBe(updateData.price);
+  });
 
   // DELETE /servicos/:id
+  test("DELETE servicos/:id should return a 204 status code", async () => {
+    const serviceResponse = await request(app)
+      .delete(`/api/servicos/${serviceId}`)
+      .set("Authorization", `Bearer ${token}`);
+
+    expect(serviceResponse.status).toBe(204);
+  });
 
   // CLEAN UP
   afterAll(async () => {
     console.log("Cleaning up after all Service tests...");
 
     if (testUserId) await User.findByIdAndDelete(testUserId);
+    if (serviceId) await Service.findByIdAndDelete(serviceId);
 
     await mongoose.connection.close();
   });

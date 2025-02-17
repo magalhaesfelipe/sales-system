@@ -24,8 +24,6 @@ describe("Plans API", () => {
 
       // 2. CREATE TEST USER | GENERATE TOKEN
       ({ testUserId, token } = await createTestUserAndToken());
-
-      console.log("Test user id and token:",testUserId, token);
     } catch (error) {
       console.error("Error in beforeAll:", error);
       throw error;
@@ -48,12 +46,11 @@ describe("Plans API", () => {
       .send(planData);
 
     console.log("POST /planos response body:", planResponse.body);
-    
+
     planId = planResponse.body.data._id;
-    
+
     expect(planResponse.status).toBe(201);
     expect(planResponse.body.data).toHaveProperty("_id");
-
   });
 
   // GET /planos

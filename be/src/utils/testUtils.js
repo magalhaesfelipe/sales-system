@@ -15,7 +15,6 @@ export const createTestUserAndToken = async () => {
       passwordConfirm: "123456789",
     });
 
-    console.log("Test user created:", testUser);
     testUserId = testUser._id;
     token = signToken(testUserId);
 
@@ -23,7 +22,6 @@ export const createTestUserAndToken = async () => {
       throw new Error("Token generation failed!");
     }
 
-    console.log("Generated Token for new user:", token);
     return { testUserId, token };
   } catch (error) {
     console.error("Error trying to create test user and token.", error);
