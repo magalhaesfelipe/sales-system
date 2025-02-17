@@ -47,13 +47,13 @@ describe("Plans API", () => {
       .set("Authorization", `Bearer ${token}`)
       .send(planData);
 
-    console.log("POST Plan response body:", planResponse.body);
-
+    console.log("POST /planos response body:", planResponse.body);
+    
+    planId = planResponse.body.data._id;
+    
     expect(planResponse.status).toBe(201);
     expect(planResponse.body.data).toHaveProperty("_id");
 
-    planId = planResponse.body.data._id;
-    console.log("Plan id:", planId);
   });
 
   // GET /planos

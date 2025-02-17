@@ -13,8 +13,7 @@ dotenv.config();
 const DATABASE = process.env.DATABASE;
 
 describe("Services API", () => {
-  let testUserId, token;
-  //let serviceId;
+  let testUserId, token, serviceId;
 
   beforeAll(async () => {
     try {
@@ -32,12 +31,28 @@ describe("Services API", () => {
   });
 
   // TESTS
-  test("WHATEVER BROTHAR", async () => {
-    expect(testUserId).toBeDefined();
-    expect(token).toBeDefined();
-  });
 
   // POST /servicos
+  test("POST /servicos should return a new plan document", async () => {
+    const serviceData = {
+      name: "Test service",
+      description: "This is the test service.",
+      price: 30,
+    };
+
+    const serviceResponse = await request(app)
+      .post("/api/servicos")
+      .set("Authorization", `Bearer ${token}`)
+      .send(serviceData);
+
+    console.log("POST /servicos response body:", serviceResponse.body);
+
+    serviceId = serviceResponse.body.data._id;
+    console.log("Service id:", serviceId);
+
+    expect(serviceResponse.status).toBe(201);
+    expect(serviceResponse.body.data).toHaveProperty("_id");
+  });
 
   // GET /servicos
 
