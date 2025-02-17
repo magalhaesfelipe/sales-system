@@ -4,8 +4,8 @@ import { v4 as uuidv4 } from "uuid";
 
 export const createTestUserAndToken = async () => {
   const uniqueId = uuidv4();
-  console.log("UNIQUE ID:", uniqueId);
   let testUserId, token;
+
   try {
     // Create user
     const testUser = await User.create({

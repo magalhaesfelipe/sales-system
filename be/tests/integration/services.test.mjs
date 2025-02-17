@@ -4,7 +4,6 @@ import app from "../../src/app.js";
 import request from "supertest";
 import User from "../../src/models/userModel.js";
 import Service from "../../src/models/serviceModel.js";
-import { signToken } from "../../src/controllers/authController.js";
 import { afterAll, beforeAll, describe, expect, jest } from "@jest/globals";
 import { createTestUserAndToken } from "../../src/utils/testUtils.js";
 
@@ -19,9 +18,9 @@ describe("Services API", () => {
     try {
       // 1. DATABASE CONNECTION
       await mongoose.connect(DATABASE);
-      console.log("Database connected.");
+      console.log("Database connected in Plans API test.");
 
-      // 2. CREATE TEST USER | GENERATE TOKEN
+      // 2. CREATE USER | GENERATE TOKEN
       ({ testUserId, token } = await createTestUserAndToken());
     } catch (error) {
       console.error("Error in beforeAll:", error);
@@ -32,7 +31,7 @@ describe("Services API", () => {
   // TESTS
 
   // POST /servicos
-  test("POST /servicos should return a new plan document", async () => {
+  test("POST /servicos should return a new Plan document", async () => {
     const serviceData = {
       name: "Test service",
       description: "This is the test service.",
@@ -43,8 +42,6 @@ describe("Services API", () => {
       .post("/api/servicos")
       .set("Authorization", `Bearer ${token}`)
       .send(serviceData);
-
-    console.log("POST /servicos response body:", serviceResponse.body);
 
     serviceId = serviceResponse.body.data._id;
 
@@ -58,7 +55,6 @@ describe("Services API", () => {
       .get("/api/servicos")
       .set("Authorization", `Bearer ${token}`);
 
-    console.log("🟥", serviceResponse);
     expect(serviceResponse.status).toBe(200);
     expect(serviceResponse.body).toHaveProperty("data");
   });
