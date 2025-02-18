@@ -49,7 +49,6 @@ describe("Clients API", () => {
       .set("Authorization", `Bearer ${token}`)
       .send(clientData);
 
-    console.log("POST /clientes response body:", clientResponse.body);
     clientId = clientResponse.body.data._id;
 
     expect(clientResponse.status).toBe(201);

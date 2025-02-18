@@ -45,8 +45,6 @@ describe("Plans API", () => {
       .set("Authorization", `Bearer ${token}`)
       .send(planData);
 
-    console.log("POST /planos response body:", planResponse.body);
-
     planId = planResponse.body.data._id;
 
     expect(planResponse.status).toBe(201);
