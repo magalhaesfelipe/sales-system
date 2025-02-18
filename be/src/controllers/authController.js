@@ -51,7 +51,6 @@ export const login = async (req, res, next) => {
     }
 
     // 3) If everything ok, send token to client
-    // The token is the only necessary thing in the response for logging in, that's all that matters when the user logs in
     const token = signToken(user._id);
     res.status(200).json({
       status: "success",
@@ -75,13 +74,16 @@ export const protect = async (req, res, next) => {
     }
 
     if (!token) {
-      return next(
-        new AppError("You are not logged in! Please log in to get access.", 401)
-      );
+      return next(new AppError("No token found! Please log in again.", 401));
     }
 
     // 2) Verification if token payload(user id) was modified or if token if expired
-    const decoded = await promisify(jwt.verify)(token, process.env.JWT_SECRET);
+    let decoded;
+    try {
+      decoded = await promisify(jwt.verify)(token, process.env.JWT_SECRET);
+    } catch (error) {
+      return next(new AppError("Invalid token! Please log in again.", 401));
+    }
 
     // 3) Check if user still exists with the decoded id
     const currentUser = await User.findById(decoded.id);
@@ -103,7 +105,6 @@ export const protect = async (req, res, next) => {
     }
 
     // GRANT ACCESS TO PROTECTED ROUTE
-
     req.user = currentUser; // Passing the user to the request, making available to other middleware
     next();
   } catch (error) {
