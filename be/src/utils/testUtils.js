@@ -3,7 +3,7 @@ import { signToken } from "../controllers/authController";
 import { v4 as uuidv4 } from "uuid";
 
 export const createTestUserAndToken = async () => {
-  const uniqueId = uuidv4();
+  const uniqueId = uuidv4(); // Generates unique 128-bit values
   let testUserId, token;
 
   try {

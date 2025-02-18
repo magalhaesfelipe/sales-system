@@ -71,9 +71,7 @@ describe("Services API", () => {
 
   // PUT /servicos/:id
   test("PUT /servicos/:id should return the modified document", async () => {
-    const updateData = {
-      price: 70,
-    };
+    const updateData = { price: 70 };
 
     const serviceResponse = await request(app)
       .put(`/api/servicos/${serviceId}`)

@@ -24,7 +24,11 @@ const clientSchema = new mongoose.Schema(
     phone: {
       type: String,
       validate: {
-        validator: isValidPhone,
+        validator: function (value) {
+          if (!value) return true;
+          const phoneNumber = parsePhoneNumberFromString(value, "BR");
+          return phoneNumber ? phoneNumber.isValid() : false;
+        },
         message: "Invalid phone number",
       },
     },
@@ -92,12 +96,35 @@ function isValidCpfCnpj(value) {
   }
 }
 
-// PHONE NUMBER VALIDATION FUNCTION
-function isValidPhone(value) {
-  if (!value) return true;
+// PHONE NUMBER VALIDATION
 
-  const phoneNumber = parsePhoneNumberFromString(value, "BR");
-  return phoneNumber ? phoneNumber.isValid() : false;
-}
+// PRE SAVE
+clientSchema.pre("save", function (next) {
+  if (this.phone) {
+    const phoneNumber = parsePhoneNumberFromString(this.phone, "BR");
+    if (phoneNumber && phoneNumber.isValid()) {
+      this.phone = phoneNumber.number; // Stores in E.164 format (e.g., 5567992651165)
+    } else {
+      return next(new Error("Invalid phone number"));
+    }
+  }
+  next();
+});
+
+// PRE UPDATE
+clientSchema.pre("findOneAndUpdate", function (next) {
+  const update = this.getUpdate();
+  if (update.phone) {
+    const phoneNumber = parsePhoneNumberFromString(update.phone, "BR");
+
+    if (phoneNumber && phoneNumber.isValid()) {
+      update.phone = phoneNumber.number; // E.164
+    } else {
+      return next(new Error("Invalid phone number"));
+    }
+  }
+
+  next();
+});
 
 export default mongoose.model("Client", clientSchema);

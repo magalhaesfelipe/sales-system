@@ -7,7 +7,6 @@ import Client from "../../src/models/clientModel.js";
 import { afterAll, beforeAll, describe, expect, jest } from "@jest/globals";
 import { createTestUserAndToken } from "../../src/utils/testUtils";
 import { v4 as uuidv4 } from "uuid";
-import e from "express";
 
 jest.setTimeout(10000);
 dotenv.config();
@@ -38,7 +37,7 @@ describe("Clients API", () => {
     const clientData = {
       name: "Test Client",
       cpfCnpj: `47.960.950/0001-21`,
-      phone: "11987654321",
+      phone: "+55 112 543 4219",
       email: `test${uniqueId}@example.com`,
       birthDate: "1985-07-15",
       type: "pessoa-fisica",
@@ -81,19 +80,27 @@ describe("Clients API", () => {
 
   // PUT /clientes/:id
   test("PUT /clientes/:id should return the modified document", async () => {
-    const updateData = { phone: "(67) 99289-6001"}
-    
+    const updateData = { phone: "+55(67) 99289-6001" };
+
     const clientReponse = await request(app)
-      .put()
-      .set()
-      .send() 
+      .put(`/api/clientes/${clientId}`)
+      .set("Authorization", `Bearer ${token}`)
+      .send(updateData);
 
-
-
-  })
+    expect(clientReponse.status).toBe(200);
+    expect(clientReponse.body.data.phone).toBe("+5567992896001");
+  });
 
   // DELETE /clientes/:id
+  test("DELETE /clientes/:id should return a 204 status code", async () => {
+    const clientReponse = await request(app)
+      .delete(`/api/clientes/${clientId}`)
+      .set("Authorization", `Bearer ${token}`);
 
+    expect(clientReponse.status).toBe(204);
+  });
+
+  // CLEAN UP
   afterAll(async () => {
     console.log("Cleaning up after all Client tests...");
 
