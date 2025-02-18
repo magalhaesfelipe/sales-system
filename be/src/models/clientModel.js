@@ -2,6 +2,10 @@ import mongoose from "mongoose";
 import validator from "validator";
 import axios from "axios";
 import { cpf, cnpj } from "cpf-cnpj-validator";
+import {
+  isValidPhoneNumber,
+  parsePhoneNumberFromString,
+} from "libphonenumber-js";
 
 const clientSchema = new mongoose.Schema(
   {
@@ -17,7 +21,13 @@ const clientSchema = new mongoose.Schema(
         message: "Invalid CPF/CNPJ",
       },
     },
-    phone: { type: String },
+    phone: {
+      type: String,
+      validate: {
+        validator: isValidPhone,
+        message: "Invalid phone number",
+      },
+    },
     address: { type: String },
     email: {
       type: String,
@@ -80,6 +90,14 @@ function isValidCpfCnpj(value) {
   } else {
     return false;
   }
+}
+
+// PHONE NUMBER VALIDATION FUNCTION
+function isValidPhone(value) {
+  if (!value) return true;
+
+  const phoneNumber = parsePhoneNumberFromString(value, "BR");
+  return phoneNumber ? phoneNumber.isValid() : false;
 }
 
 export default mongoose.model("Client", clientSchema);

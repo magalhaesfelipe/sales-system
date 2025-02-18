@@ -7,6 +7,7 @@ import Client from "../../src/models/clientModel.js";
 import { afterAll, beforeAll, describe, expect, jest } from "@jest/globals";
 import { createTestUserAndToken } from "../../src/utils/testUtils";
 import { v4 as uuidv4 } from "uuid";
+import e from "express";
 
 jest.setTimeout(10000);
 dotenv.config();
@@ -67,8 +68,29 @@ describe("Clients API", () => {
   });
 
   // GET /clientes/:id
+  test("GET /clientes/:id should return a Client document", async () => {
+    const clientResponse = await request(app)
+      .get(`/api/clientes/${clientId}`)
+      .set("Authorization", `Bearer ${token}`);
+
+    console.log(clientResponse.body);
+
+    expect(clientResponse.status).toBe(200);
+    expect(clientResponse.body.data).toHaveProperty("_id");
+  });
 
   // PUT /clientes/:id
+  test("PUT /clientes/:id should return the modified document", async () => {
+    const updateData = { phone: "(67) 99289-6001"}
+    
+    const clientReponse = await request(app)
+      .put()
+      .set()
+      .send() 
+
+
+
+  })
 
   // DELETE /clientes/:id
 

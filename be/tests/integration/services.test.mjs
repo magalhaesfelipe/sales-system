@@ -60,7 +60,7 @@ describe("Services API", () => {
   });
 
   // GET /servicos/:id
-  test("GET /servicos/:id should return the a Service document", async () => {
+  test("GET /servicos/:id should return a Service document", async () => {
     const serviceResponse = await request(app)
       .get(`/api/servicos/${serviceId}`)
       .set("Authorization", `Bearer ${token}`);
