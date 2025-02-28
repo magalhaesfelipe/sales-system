@@ -4,7 +4,7 @@ import app from "../../src/app.js";
 import request from "supertest";
 import User from "../../src/models/userModel.js";
 import Client from "../../src/models/clientModel.js";
-import { afterAll, beforeAll, describe, expect, jest } from "@jest/globals";
+import { jest } from "@jest/globals";
 import { createTestUserAndToken } from "../../src/utils/testUtils";
 import { v4 as uuidv4 } from "uuid";
 

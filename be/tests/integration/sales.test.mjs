@@ -1,21 +1,18 @@
-import request from "supertest";
+import mongoose from "mongoose";
+import dotenv from "dotenv";
 import app from "../../src/app.js"; // Points to the Express app
-import { signToken } from "../../src/controllers/authController.js";
+import request from "supertest";
 import User from "../../src/models/userModel.js";
 import Client from "../../src/models/clientModel.js";
 import Plan from "../../src/models/planModel.js";
 import Service from "../../src/models/serviceModel.js";
 import Sale from "../../src/models/saleModel.js";
-import { afterAll, expect, jest } from "@jest/globals";
-import mongoose from "mongoose";
-import dotenv from "dotenv";
-import { v4 as uuidv4 } from "uuid";
+import { jest } from "@jest/globals";
 import { createTestUserAndToken } from "../../src/utils/testUtils.js";
 
 jest.setTimeout(10000);
 dotenv.config();
 const DATABASE = process.env.DATABASE;
-const uniqueId = uuidv4();
 
 describe("Sales API", () => {
   let testUserId, token, clientId, planId, serviceId, saleId;
@@ -36,7 +33,7 @@ describe("Sales API", () => {
         name: "Test Client",
         cpfCnpj: "33.592.510/0001-54",
         phone: "11987654321",
-        email: "bancossafra@gmail.com",
+        email: "bancosafra@gmail.com",
         birthDate: "1985-07-15",
         type: "pessoa-juridica",
         cep: "01310-930",
@@ -109,6 +106,7 @@ describe("Sales API", () => {
       ],
       discount: 5.0,
     };
+
 
     const saleResponse = await request(app)
       .post("/api/vendas")

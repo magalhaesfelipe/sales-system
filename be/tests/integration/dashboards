@@ -1,0 +1,49 @@
+import mongoose from "mongoose";
+import dotenv from 'dotenv';
+import app from "../../src/app.js";
+import request from 'supertest'
+import User from "../../src/models/userModel.js";
+import Client from "../../src/models/clientModel.js"; 
+import Plan from "../../src/models/planModel.js";
+import Service from "../../src/models/serviceModel.js";
+import Sale from "../../src/models/saleModel.js";
+import { jest } from "@jest/globals";
+import { createTestUserAndToken } from "../../src/utils/testUtils.js";
+
+jest.setTimeout(10000)
+dotenv.config();
+const DATABASE = process.env.DATABASE;
+
+describe("Dashboards API", () => {
+  
+  beforeAll()
+
+  // TESTS
+
+  // GET /dashboard/clientes
+  test("GET /dashboard/clientes should return all client documents", async () => {
+    
+  })
+  
+
+
+
+  // GET /dashboard/vendas
+  test()
+
+  afterAll()
+
+
+})
+
+
+
+
+
+
+
+
+
+
+
+
